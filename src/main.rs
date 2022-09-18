@@ -52,11 +52,27 @@ fn play_game() -> GameResult {
     let mut input_buffer;
     let stdin = std::io::stdin();
     for i in 0..6 {
-        println!("Enter guess:");
-        input_buffer = String::new();
-        stdin
-            .read_line(&mut input_buffer)
-            .expect("Failed to read from stdin!");
+        loop {
+            println!("Enter guess:");
+            input_buffer = String::new();
+            stdin
+                .read_line(&mut input_buffer)
+                .expect("Failed to read from stdin!");
+            if input_buffer.chars().count() != 6 {
+                println!("Invalid word! Must be exactly 5 letters long!");
+                continue;
+            } else {
+                // add another check to make sure the provided word exists in the English
+                // dictionary
+                // if !dictionary.query(&input_buffer) {
+                //      println!("I've never seen that word anywhere! Try again.");
+                //      continute;
+                //  } else {
+                //      break;
+                //  }
+                break;
+            }
+        }
         let matches = check(&input_buffer, &word);
         let mut correct = 0;
         for (i, result) in matches.into_iter().enumerate() {

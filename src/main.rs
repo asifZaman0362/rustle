@@ -80,9 +80,9 @@ fn play_game() -> GameResult {
                 1 => {
                     correct += 1;
                     print!(
-                        "[{}]",
+                        "{}",
                         Green.paint(format!(
-                            "{}",
+                            "[{}]",
                             input_buffer
                                 .chars()
                                 .nth(i as usize)
@@ -91,9 +91,9 @@ fn play_game() -> GameResult {
                     );
                 }
                 0 => print!(
-                    "[{}]",
+                    "{}",
                     Yellow.paint(format!(
-                        "{}",
+                        "[{}]",
                         input_buffer
                             .chars()
                             .nth(i as usize)
@@ -101,9 +101,9 @@ fn play_game() -> GameResult {
                     ))
                 ),
                 -1 => print!(
-                    "[{}]",
+                    "{}",
                     White.paint(format!(
-                        "{}",
+                        "[{}]",
                         input_buffer
                             .chars()
                             .nth(i as usize)

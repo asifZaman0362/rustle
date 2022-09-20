@@ -3,25 +3,39 @@ use rand::Rng;
 use std::fs::File;
 use std::io::{self, prelude::*, BufReader};
 use std::path::Path;
-use std::collections::HashMap;
 
 struct Dictionary {
-
+    words: Vec<String>
 }
 
 impl Dictionary {
 
-    fn new(filename: &str) -> Result<Dictionary> {
+    fn new(filename: &str) -> std::io::Result<Dictionary> {
         let file = File::open(filename)?;
         let reader = BufReader::new(file);
-        let mut word_tree = HashMap::<String, Vec<String>>::new();
+        let mut words = vec![];
         for line in reader.lines() {
-
+            let word = line?;
+            words.push(word);
         }
+        Ok(Dictionary { words })
     }
 
-    fn find_word(word: &str) -> bool {
-
+    fn find_word(&self, word: &str) -> bool {
+        // binary search string
+        let mut len = self.words.len();
+        let mut left = 0;
+        while left <= len {
+            let mid = left + (len - left) / 2;
+            if self.words[mid] == word {
+                return true;
+            } else if self.words[mid] < word.to_string() {
+                left = mid + 1;
+            } else {
+                len = mid - 1;
+            }
+        }
+        false
     }
 
 }
@@ -43,19 +57,17 @@ where
         }
     }
     Err(std::io::Error::new(
-        io::ErrorKind::InvalidData,
+        io::ErrorKind::UnexpectedEof,
         "Reached end of file!",
     ))
 }
 
 fn check(input: &str, answer: &str) -> [i8; 5] {
+    let upper = answer.to_uppercase();
     let mut matches = [0; 5];
     let mut mask: Vec<usize> = vec![];
     for (i, a) in input.chars().enumerate() {
-        if i >= 5 {
-            break;
-        }
-        for (j, b) in answer.chars().enumerate() {
+        for (j, b) in upper.chars().enumerate() {
             if a == b && !(mask.contains(&j)) {
                 matches[i] = (i == j).try_into().unwrap();
                 mask.push(j);
@@ -71,6 +83,10 @@ fn check(input: &str, answer: &str) -> [i8; 5] {
 fn play_game() -> GameResult {
     let word_number = rand::thread_rng().gen_range(0..500);
     let word = get_word("./repo.txt", word_number).expect("Failed to get word from repository!");
+    let dictionary = match Dictionary::new("./dictionary.txt") {
+        Ok(dict) => dict,
+        Err(err) => panic!("{}", err)
+    };
     let mut input_buffer;
     let stdin = std::io::stdin();
     for i in 0..6 {
@@ -80,18 +96,15 @@ fn play_game() -> GameResult {
             stdin
                 .read_line(&mut input_buffer)
                 .expect("Failed to read from stdin!");
-            if input_buffer.chars().count() != 6 {
+            input_buffer = input_buffer.trim().to_owned();
+            if input_buffer.chars().count() != 5 {
                 println!("Invalid word! Must be exactly 5 letters long!");
                 continue;
             } else {
-                // add another check to make sure the provided word exists in the English
-                // dictionary
-                // if !dictionary.query(&input_buffer) {
-                //      println!("I've never seen that word anywhere! Try again.");
-                //      continute;
-                //  } else {
-                //      break;
-                //  }
+                if !dictionary.find_word(&input_buffer) {
+                    println!("I've never seen that word before!");
+                    continue;
+                }
                 break;
             }
         }
@@ -135,7 +148,7 @@ fn play_game() -> GameResult {
                 _ => panic!("Shouldn't have happened!"),
             };
         }
-        println!("");
+        println!("{}", correct);
         if correct == 5 {
             return GameResult::Win(word.to_owned(), i);
         }
@@ -143,9 +156,6 @@ fn play_game() -> GameResult {
     GameResult::Lose(word.to_owned())
 }
 
-fn check_dictionary(word: &str, dictionary: &Dictionary) -> bool {
-    dictionary.find_word(word)
-}
 
 fn main() {
     let remarks = [

@@ -3,6 +3,28 @@ use rand::Rng;
 use std::fs::File;
 use std::io::{self, prelude::*, BufReader};
 use std::path::Path;
+use std::collections::HashMap;
+
+struct Dictionary {
+
+}
+
+impl Dictionary {
+
+    fn new(filename: &str) -> Result<Dictionary> {
+        let file = File::open(filename)?;
+        let reader = BufReader::new(file);
+        let mut word_tree = HashMap::<String, Vec<String>>::new();
+        for line in reader.lines() {
+
+        }
+    }
+
+    fn find_word(word: &str) -> bool {
+
+    }
+
+}
 
 enum GameResult {
     Win(String, u8),
@@ -119,6 +141,10 @@ fn play_game() -> GameResult {
         }
     }
     GameResult::Lose(word.to_owned())
+}
+
+fn check_dictionary(word: &str, dictionary: &Dictionary) -> bool {
+    dictionary.find_word(word)
 }
 
 fn main() {

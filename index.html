@@ -1,0 +1,143 @@
+<!DOCTYPE HTML>
+<html>
+    <head>
+        <style>
+            @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;1,100;1,200;1,300;1,400;1,500;1,600&family=IBM+Plex+Sans:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;1,100;1,200;1,300;1,400;1,500;1,600;1,700&display=swap');
+            html {
+                background-color: #f4f4f4;
+            }
+            body {
+                background-color: #f4f4f4;
+                padding: 0;
+                margin: 0;
+                font-family: "IBM Plex Sans";
+                color: #2c2c2c;
+            }
+            #main-container {
+                padding: 30px 200px;
+            }
+            #logo {
+                font-size: 36px;
+                margin-bottom: 100px;
+            }
+            #game-area {
+                padding: 0 200px;
+                text-align: center;
+            }
+            #guess-stage {
+                display: flex;
+                flex-direction: row;
+                margin-bottom: 50px;
+            }
+            #guess-stage h2 {
+                font-size: 42px;
+                font-family: "IBM Plex Mono";
+                font-weight: 300;
+                margin: 20px 0;
+            }
+            #guess-stage * {
+                flex: 1;
+            }
+            #keyboard {
+                display: flex;
+                flex-direction: column;
+                row-gap: 5px;
+            }
+            .key-row ul {
+                display: flex;
+                flex-direction: row;
+                column-gap: 5px;
+                list-style: none;
+                margin: 0;
+                font-family: "IBM Plex Mono";
+                justify-content: center;
+            }
+            .key-row ul li {
+                background-color: #e4e4e4;
+                font-size: 42px;
+                padding: 10px 25px;
+                text-transform: uppercase;
+            }
+            #input {
+                font-size: 160px;
+                margin: 0;
+                margin-bottom: -40px;
+            }
+            hr {
+                height: 4px;
+                margin: 20px 40px 10px;
+                border: none;
+                background-color: black;
+            }
+        </style>
+    </head>
+    <body>
+        <div id="main-container">
+            <h1 id="logo">rustle</h1>
+            <div id="game-area">
+                <div id="input-area">
+                    <h1 id="input">FLASK</h1>
+                    <hr id="input-bar">
+                </div>
+                <div id="guess-stage">
+                    <div class="guess-container">
+                        <h2>ABATE</h2>
+                    </div>
+                    <div class="guess-container">
+                        <h2>GLIDE</h2>
+                    </div>
+                    <div class="guess-container">
+                        <h2>CREAM</h2>
+                    </div>
+                    <div class="guess-container">
+                        <h2>CRANE</h2>
+                    </div>
+                    <div class="guess-container">
+                        <h2>STOVE</h2>
+                    </div>
+                </div>
+                <div id="keyboard">
+                    <div class="key-row">
+                        <ul>
+                            <li>q</li>
+                            <li>w</li>
+                            <li>e</li>
+                            <li>r</li>
+                            <li>t</li>
+                            <li>y</li>
+                            <li>u</li>
+                            <li>i</li>
+                            <li>o</li>
+                            <li>p</li>
+                            <li><</li>
+                        </ul>
+                    </div>
+                    <div class="key-row">
+                        <ul>
+                            <li>a</li>
+                            <li>s</li>
+                            <li>d</li>
+                            <li>f</li>
+                            <li>g</li>
+                            <li>h</li>
+                            <li>j</li>
+                            <li>k</li>
+                            <li>l</li>
+                        </ul>
+                    </div>
+                    <div class="key-row">
+                        <ul>
+                            <li>z</li>
+                            <li>x</li>
+                            <li>c</li>
+                            <li>v</li>
+                            <li>b</li>
+                            <li>n</li>
+                            <li>m</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </body>
+</html>

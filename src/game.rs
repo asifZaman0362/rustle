@@ -1,15 +1,23 @@
-use ansi_term::Color::{Green, White, Yellow};
+use ansi_term::{ Style, Color::{Green, Yellow, Fixed}};
 use rand::Rng;
 use std::fs::File;
 use std::io::{prelude::*, BufReader, BufWriter};
 
-struct UserData {
+struct UserData<'a> {
     guess_distribution: Vec<(u8, usize)>,
+    path: &'a str
 }
 
-impl UserData {
+impl<'a> UserData<'a> {
+    fn new(path: &str) -> UserData {
+        let guess_distribution: Vec<(u8, usize)> = vec![ (1, 0), (2, 0), (3, 0), (4, 0), (5, 0), (6, 0) ];
+        let path = path;
+        UserData { guess_distribution, path }
+    }
+
     fn load(filepath: &str) -> std::io::Result<UserData> {
         let datafile = File::open(&filepath)?;
+        let path = filepath;
         let mut guess_distribution = vec![];
         let reader = BufReader::new(datafile);
         for line in reader.lines() {
@@ -23,15 +31,15 @@ impl UserData {
                 None => {}
             };
         }
-        Ok(UserData { guess_distribution })
+        Ok(UserData { guess_distribution, path })
     }
 
-    fn dump(&self, filepath: &str) -> std::io::Result<usize> {
-        let datafile = File::create(filepath)?;
+    fn dump(&self) -> std::io::Result<usize> {
+        let datafile = File::create(self.path)?;
         let mut writer = BufWriter::new(datafile);
         let mut bytes: usize = 0;
-        for (tries, freq) in self.guess_distribution {
-            let string = format!("{}:{}", tries, freq);
+        for (tries, freq) in &self.guess_distribution {
+            let string = format!("{}:{}\n", tries, freq);
             bytes += writer.write(string.as_bytes())?;
         }
         Ok(bytes)
@@ -43,15 +51,21 @@ enum GameResult {
     Lose(String),
 }
 
-struct Game {
+pub struct Game<'a> {
     dictionary: Vec<String>,
     word_pool: Vec<String>,
-    data: UserData
+    data: UserData<'a>
 }
 
-impl Game {
-    pub fn new(dictionary_path: &str, word_pool_path: &str, data_path: &str) -> std::io::Result<Game> {
-        let data = UserData::load(data_path)?;
+impl<'a> Game<'a> {
+    pub fn new(dictionary_path: &str, word_pool_path: &str, data_path: &'a str) -> std::io::Result<Game<'a>> {
+        let data = match UserData::load(data_path) {
+            Ok(data) => data,
+            Err(_) => {
+                println!("Failed to load user data!");
+                UserData::new(data_path)
+            }
+        };
         let dictionary = Game::load_dictionary(dictionary_path)?;
         let word_pool = Game::load_words(word_pool_path)?;
         Ok(Game {
@@ -74,7 +88,7 @@ impl Game {
 
     fn load_words(word_pool_path: &str) -> std::io::Result<Vec<String>> {
         let data = File::open(word_pool_path)?;
-        let words = vec![];
+        let mut words = vec![];
         let reader = BufReader::new(data);
         for line in reader.lines() {
             words.push(line?);
@@ -83,7 +97,7 @@ impl Game {
     }
 
     fn get_random_word(&self) -> &String {
-        let rng = rand::thread_rng();
+        let mut rng = rand::thread_rng();
         let random_word_number = rng.gen_range(0..self.word_pool.len());
         &self.word_pool[random_word_number as usize]
     }
@@ -128,7 +142,7 @@ impl Game {
         let answer = self.get_random_word();
         for i in 0..6 {
             let guess = loop {
-                println!("Enter your guess:");
+                println!("\nEnter your guess:");
                 match self.validate_input(self.get_input()) {
                     Ok(guess) => {
                         break guess
@@ -141,13 +155,18 @@ impl Game {
             };
             let matches = Game::check(&guess, answer);
             let mut correct = 0;
+            let col_white = Fixed(255);
+            let col_gray_bg = Fixed(242);
+            let text_style_correct = Style::new().bold().on(Green).fg(col_white);
+            let text_style_misplaced = Style::new().bold().on(Yellow).fg(col_white);
+            let text_style_invalid = Style::new().bold().on(col_gray_bg).fg(col_white);
             for (i, result) in matches.into_iter().enumerate() {
                 match result {
                     1 => {
                         correct += 1;
                         print!(
                             "{}",
-                            Green.paint(format!(
+                            text_style_correct.paint(format!(
                                 "[{}]",
                                 guess
                                     .chars()
@@ -158,7 +177,7 @@ impl Game {
                     }
                     0 => print!(
                         "{}",
-                        Yellow.paint(format!(
+                        text_style_misplaced.paint(format!(
                             "[{}]",
                             guess
                                 .chars()
@@ -168,7 +187,7 @@ impl Game {
                     ),
                     -1 => print!(
                         "{}",
-                        White.paint(format!(
+                        text_style_invalid.paint(format!(
                             "[{}]",
                             guess
                                 .chars()
@@ -179,7 +198,6 @@ impl Game {
                     _ => panic!("Shouldn't have happened!"),
                 };
             }
-            println!("{}", correct);
             if correct == 5 {
                 return GameResult::Win(answer.to_owned(), i);
             }
@@ -187,12 +205,17 @@ impl Game {
         GameResult::Lose(answer.to_owned())
     }
 
-    pub fn play(&self) {
+    pub fn play(&mut self) {
         let remarks = vec![ "Genius", "Marvelous", "Amazing", "Nice", "Passable", "Whew" ];
         loop {
             match self.start_game() {
-                GameResult::Win(word, tries) => {
+                GameResult::Win(_, tries) => {
                     println!("{}, you win!", remarks[tries as usize]);
+                    self.data.guess_distribution[tries as usize].1 += 1;
+                    match self.data.dump() {
+                        Ok(_) => {},
+                        Err(err) => panic!("Failed to save user data: {}", err)
+                    };
                 },
                 GameResult::Lose(word) => {
                     println!("Oof! The word was {}. Better luck next time!", word);
@@ -201,7 +224,7 @@ impl Game {
             println!("Would you like to play again? (y/Y)");
             let mut input = String::new();
             std::io::stdin().read_line(&mut input).expect("failed to read standard input!");
-            match input.as_str() {
+            match input.trim() {
                 "y" | "Y" => continue,
                 _ => break,
             };

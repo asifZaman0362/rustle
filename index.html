@@ -3,6 +3,10 @@
     <head>
         <style>
             @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;1,100;1,200;1,300;1,400;1,500;1,600&family=IBM+Plex+Sans:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;1,100;1,200;1,300;1,400;1,500;1,600;1,700&display=swap');
+            :root {
+                --col-correct: #a4be71;
+                --col-misplaced: #e19627;
+            }
             html {
                 background-color: #f4f4f4;
             }
@@ -38,6 +42,14 @@
             #guess-stage * {
                 flex: 1;
             }
+            .correct {
+                font-weight: 800;
+                color: var(--col-correct);
+            }
+            .misplaced {
+                font-weight: 800;
+                color: var(--col-misplaced);
+            }
             #keyboard {
                 display: flex;
                 flex-direction: column;
@@ -63,6 +75,12 @@
                 margin: 0;
                 margin-bottom: -40px;
             }
+            #input::after {
+                content: "\00a0\00a0";
+                width: 0;
+                visibility: hidden;
+                margin-right: -100px;
+            }
             hr {
                 height: 4px;
                 margin: 20px 40px 10px;
@@ -70,18 +88,82 @@
                 background-color: black;
             }
         </style>
+        <script defer>
+            var answer = "";
+            var answer_input; 
+            function submit() {
+
+            }
+            function process_key(event) {
+                switch (event.key) {
+                    case "Backspace":
+                        backspace();
+                        break;
+                    case "Enter":
+                        submit();
+                        break;
+                    default:
+                        if (event.key >= 'a' && event.key <= 'z') {
+                            press_key(event.key.toUpperCase());
+                        }
+                }
+            }
+            function update_guess() {
+                answer_input.innerHTML = answer;
+            }
+            function backspace() {
+                if (answer == "") return;
+                else answer = answer.slice(0, -1);
+                update_guess();
+            }
+            function press_key(char) {
+                if (char == '<') return backspace();
+                if (answer.length >=5) return;
+                answer += char;
+                update_guess();
+            }
+            function generate_keys() {
+                answer_input = document.getElementById("input");
+                let keyboard = document.getElementById("keyboard");
+                document.addEventListener('keydown', process_key);
+                let keyrows = [ 
+                    document.createElement("div"),
+                    document.createElement("div"),
+                    document.createElement("div")
+                ];
+                let x_keys = [ "QWERTYUIOP<", "ASDFGHJKL*", "ZXCVBNM" ];
+                console.log(x_keys);
+                for (let i = 0; i < keyrows.length; i++) {
+                    let ul = document.createElement("ul");;
+                    for (let j = 0; j < x_keys[i].length; j++) {
+                        let key = document.createElement('li');
+                        key.onclick = () => { press_key(x_keys[i][j]); }
+                        if (x_keys[i][j] == '*') {
+                            key.innerHTML = "↩";
+                        } else if (x_keys[i][j] == '<') {
+                            key.innerHTML = "⌫";
+                        }
+                        else key.innerHTML = x_keys[i][j];
+                        ul.appendChild(key);
+                    }
+                    keyrows[i].classList.add("key-row");
+                    keyrows[i].appendChild(ul);
+                    keyboard.appendChild(keyrows[i]);
+                }
+            }
+        </script>
     </head>
-    <body>
+    <body onload="generate_keys()">
         <div id="main-container">
             <h1 id="logo">rustle</h1>
             <div id="game-area">
                 <div id="input-area">
-                    <h1 id="input">FLASK</h1>
+                    <h1 id="input"></h1>
                     <hr id="input-bar">
                 </div>
                 <div id="guess-stage">
                     <div class="guess-container">
-                        <h2>ABATE</h2>
+                        <h2>AB<span class="correct">A</span>T<span class="misplaced">E</span></h2>
                     </div>
                     <div class="guess-container">
                         <h2>GLIDE</h2>
@@ -97,45 +179,6 @@
                     </div>
                 </div>
                 <div id="keyboard">
-                    <div class="key-row">
-                        <ul>
-                            <li>q</li>
-                            <li>w</li>
-                            <li>e</li>
-                            <li>r</li>
-                            <li>t</li>
-                            <li>y</li>
-                            <li>u</li>
-                            <li>i</li>
-                            <li>o</li>
-                            <li>p</li>
-                            <li><</li>
-                        </ul>
-                    </div>
-                    <div class="key-row">
-                        <ul>
-                            <li>a</li>
-                            <li>s</li>
-                            <li>d</li>
-                            <li>f</li>
-                            <li>g</li>
-                            <li>h</li>
-                            <li>j</li>
-                            <li>k</li>
-                            <li>l</li>
-                        </ul>
-                    </div>
-                    <div class="key-row">
-                        <ul>
-                            <li>z</li>
-                            <li>x</li>
-                            <li>c</li>
-                            <li>v</li>
-                            <li>b</li>
-                            <li>n</li>
-                            <li>m</li>
-                        </ul>
-                    </div>
                 </div>
             </div>
         </div>

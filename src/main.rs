@@ -1,7 +1,10 @@
 #[macro_use] extern crate rocket;
 use game::Game;
 use rocket::State;
+use serde::{ Serialize, Deserialize };
+use serde_json;
 
+mod db;
 mod game;
 
 #[get("/")]
@@ -14,9 +17,11 @@ async fn guess(game_state: &State<game::Game>, word: String) -> String {
     match game_state.validate_input(&word) {
         Ok(_) => {
             let guess_result = game_state.check(&word);
+            return serde_json::to_string(&guess_result).unwrap();
             let mut correct = 0;
-            for i in guess_result.into_iter() {
-                if i == 1 {
+            for i in guess_result.letters.into_iter() {
+                let (letter, rank) = i;
+                if rank == 1 {
                     correct += 1;
                 }
             }

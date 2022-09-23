@@ -2,6 +2,12 @@ use ansi_term::{ Style, Color::{Green, Yellow, Fixed}};
 use rand::Rng;
 use std::fs::File;
 use std::io::{prelude::*, BufReader, BufWriter};
+use serde::{ Serialize, Deserialize };
+
+#[derive(Serialize, Deserialize)]
+pub struct Guess {
+    pub letters: [(char, u8); 5]
+}
 
 struct UserData {
     guess_distribution: Vec<(u8, usize)>,
@@ -103,7 +109,8 @@ impl Game {
         &self.chosen
     }
 
-    pub fn check(&self, input: &str) -> [i8; 5] {
+    pub fn check(&self, input: &str) -> Guess {
+        let mut guess_arr : [char; 5] = ['0'; 5];
         let upper = self.chosen.to_uppercase();
         let mut matches = [0; 5];
         let mut mask: Vec<usize> = vec![];
@@ -114,11 +121,17 @@ impl Game {
                     mask.push(j);
                     break;
                 } else {
-                    matches[i] = -1;
+                    matches[i] = 2;
                 }
             }
         }
-        matches
+        let mut guesses = Guess {
+            letters: [('0', 0); 5]
+        };
+        for i in 0..5 {
+            guesses.letters[i] = (input.chars().nth(i).unwrap(), matches[i]);
+        };
+        guesses
     }
 
     fn get_input(&self) -> String {

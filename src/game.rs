@@ -103,13 +103,26 @@ impl<'a> Game<'a> {
     }
 
     fn check(input: &str, answer: &str) -> [i8; 5] {
-        let upper = answer.to_uppercase();
+        let upper = answer.to_uppercase().chars().collect::<Vec<char>>();
+        let guess = input.to_uppercase().chars().collect::<Vec<char>>();
         let mut matches = [0; 5];
         let mut mask: Vec<usize> = vec![];
-        for (i, a) in input.chars().enumerate() {
-            for (j, b) in upper.chars().enumerate() {
-                if a == b && !(mask.contains(&j)) {
-                    matches[i] = (i == j).try_into().unwrap();
+        // first pass, find correct letters and remove them
+        let mut filter = vec![];
+        for (i, a) in guess.iter().enumerate() {
+            let b = upper[i];
+            if *a == b {
+                filter.push(i);
+                matches[i] = 1;
+            }
+        }
+        for (i, a) in guess.iter().enumerate() {
+            if filter.contains(&i) {
+                continue;
+            }
+            for (j, b) in upper.iter().enumerate() {
+                if *a == *b && !mask.contains(&j) && !filter.contains(&j)  {
+                    matches[i] = 0;
                     mask.push(j);
                     break;
                 } else {
@@ -153,7 +166,7 @@ impl<'a> Game<'a> {
                     }
                 };
             };
-            let matches = Game::check(&guess, answer);
+            let matches = Game::check(&guess, &answer);
             let mut correct = 0;
             let col_white = Fixed(255);
             let col_gray_bg = Fixed(242);
